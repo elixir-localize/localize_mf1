@@ -16,6 +16,7 @@ defmodule Localize.Message.MF1.MixProject do
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
       deps: deps(),
+      test_coverage: [ignore_modules: coverage_ignore_modules()],
       dialyzer: [
         plt_add_apps: ~w(gettext ex_money)a,
         flags: [
@@ -84,7 +85,27 @@ defmodule Localize.Message.MF1.MixProject do
       {:ex_slop, "~> 0.1", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.34", only: [:dev, :release], runtime: false},
       {:dialyxir, "~> 1.0", only: :dev, runtime: false}
-    ]
+    ] ++ maybe_json_polyfill()
+  end
+
+  # json_polyfill (the EEP 68 :json module for OTP 26) is for this project's
+  # own dev, test and CI on OTP 26, as in Localize: `only:` dependencies never
+  # enter the hex package requirements. OTP 26 consumers add it themselves,
+  # as the Localize README says. It is not fetched on OTP 27 and later,
+  # where :json is built in and the polyfill does not build.
+  defp maybe_json_polyfill do
+    if Code.ensure_loaded?(:json) do
+      []
+    else
+      [{:json_polyfill, "~> 0.2 or ~> 1.0", only: [:dev, :test]}]
+    end
+  end
+
+  # The NimbleParsec combinators run at compile time to build the parser, so
+  # coverage of them is measured through `Localize.Message.MF1.Parser`, as
+  # Localize does for its own combinator modules.
+  defp coverage_ignore_modules do
+    [Localize.Message.MF1.Parser.Combinators]
   end
 
   # Ensure CLDR locale data for the locales referenced in tests is present

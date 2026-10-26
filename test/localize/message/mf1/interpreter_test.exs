@@ -250,4 +250,107 @@ defmodule Localize.Message.MF1.InterpreterTest do
       end
     end
   end
+
+  describe "named formats" do
+    setup do
+      previous = Application.get_env(:localize_mf1, :formats)
+      Application.put_env(:localize_mf1, :formats, %{env_one_place: [fractional_digits: 1]})
+
+      on_exit(fn ->
+        if is_nil(previous) do
+          Application.delete_env(:localize_mf1, :formats)
+        else
+          Application.put_env(:localize_mf1, :formats, previous)
+        end
+      end)
+    end
+
+    test "a format from the application environment" do
+      assert MF1.format("{n, number, :env_one_place}", n: 3) == {:ok, "3.0"}
+    end
+
+    test "a number format style of the locale by name" do
+      assert MF1.format("{n, number, :decimal_long}", n: 12_000) == {:ok, "12 thousand"}
+    end
+
+    test "an RBNF rule by name for spellout" do
+      assert MF1.format("{n, spellout, :spellout_cardinal}", n: 3) == {:ok, "three"}
+    end
+
+    test "configured formats for dates, units, lists and money" do
+      formats = [
+        short_date: [format: :short],
+        abbreviated: [format: :short],
+        wide: [format: :long]
+      ]
+
+      {:ok, unit} = Localize.Unit.new(3, "kilometer")
+
+      assert MF1.format("{d, date, :short_date}", [d: ~D[2026-10-27]], formats: formats) ==
+               {:ok, "10/27/26"}
+
+      assert MF1.format("{u, unit, :abbreviated}", [u: unit], formats: formats) == {:ok, "3 km"}
+
+      assert MF1.format("{m, money, :wide}", [m: Money.new(:USD, 2)], formats: formats) ==
+               {:ok, "2.00 US dollars"}
+    end
+
+    test "an unconfigured name or another keyword style formats with the defaults" do
+      assert MF1.format("{d, date, :nothing}", d: ~D[2026-10-27]) == {:ok, "Oct 27, 2026"}
+      assert MF1.format("{d, date, integer}", d: ~D[2026-10-27]) == {:ok, "Oct 27, 2026"}
+      assert MF1.format("{l, list, :nothing}", l: ["a", "b"]) == {:ok, "a and b"}
+      assert MF1.format("{l, list, short}", l: ["a", "b"]) == {:ok, "a and b"}
+    end
+
+    test "formats that are not a map or keyword list, or not keyword entries, are ignored" do
+      assert MF1.format("{n, number, :env_one_place}", [n: 3], formats: :bad) == {:ok, "3.0"}
+
+      assert MF1.format("{n, number, :env_one_place}", [n: 3], formats: %{env_one_place: :bad}) ==
+               {:ok, "3.0"}
+    end
+
+    test "pattern text a type does not take, and a style spellout does not take, are errors" do
+      {:ok, unit} = Localize.Unit.new(3, "kilometer")
+
+      assert {:error, %Localize.FormatError{}} = MF1.format("{u, unit, wide}", u: unit)
+      assert {:error, %Localize.FormatError{}} = MF1.format("{n, spellout, medium}", n: 3)
+    end
+  end
+
+  describe "edge cases" do
+    test "a plain number with formatter options" do
+      assert MF1.format("{n}", n: {3, fractional_digits: 2}) == {:ok, "3.00"}
+    end
+
+    test "a Decimal with an offset" do
+      assert MF1.format("{n, plural, offset:1 other {#}}", n: Decimal.new(3)) == {:ok, "2"}
+    end
+
+    test "named arguments are not found in a list of values or under other keys" do
+      assert {:error, %Localize.BindError{}} = MF1.format("{a}", ["x"])
+      assert {:error, %Localize.BindError{}} = MF1.format("{a}", %{1 => "x"})
+    end
+
+    test "a hand-built parsed message" do
+      assert MF1.format_list([:value], []) == {:ok, ["#"], [], []}
+
+      assert MF1.format_list([{:plural, {:named_arg, "n"}, [], %{}}], n: 1) ==
+               {:ok, [], ["n"], []}
+
+      assert {:error, %Localize.FormatError{}} =
+               MF1.format_list([{:simple_format, {:named_arg, "a"}, :bogus}], a: 1)
+
+      assert {:error, %Localize.FormatError{}} = MF1.format_list([{:bogus}], [])
+    end
+
+    test "the :trim option" do
+      assert MF1.format("  {a}  ", [a: 1], trim: true) == {:ok, "1"}
+    end
+
+    test "errors for a message that is not a string" do
+      assert {:error, %Localize.InvalidValueError{}} = MF1.format_to_iolist(nil)
+      {:error, error} = MF1.Parser.parse(42)
+      assert Exception.message(error) =~ "could not be parsed: a message is a string"
+    end
+  end
 end
