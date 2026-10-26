@@ -20,13 +20,13 @@ A port of the MessageFormat 1 half of `ex_cldr_messages` 2.0.1 (`~/Development/c
 
 ## Tasks
 
-* [ ] **Printer and helpers** — `canonical_message/2`, the `~M` sigil and `jaro_distance/3`.
-
 * [ ] **Gettext interpolation** — an MF1 interpolation module for `Gettext.Backend`.
 
 * [ ] **Documentation and release** — README, a guide on moving from `ex_cldr_messages`, CHANGELOG and the release review.
 
 ### Done
+
+* [x] **Printer and helpers** — `canonical_message/2`, `jaro_distance/3` and the `~M` sigil (`Localize.Message.MF1.Sigils`), byte-identical to `ex_cldr_messages` wherever its output parses back to the same message, checked against its output for a corpus in `test/fixtures/cldr_messages_canonical.exs`. The parser now quotes `#` only in plural clauses, and honours quoting mid-text in them, as ICU does. 2026-10-27.
 
 * [x] **Interpreter** — `format/3`, `format!/3`, `format_to_iolist/3`, `format_list/3` and `bindings/1` through Localize. The `ex_cldr_messages` MF1 tests pass unchanged apart from error shapes and a CLDR no-break space; skeletons (`::…`) are tagged by the parser and return an error. 2026-10-27.
 

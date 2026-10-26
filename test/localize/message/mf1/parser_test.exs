@@ -180,9 +180,27 @@ defmodule Localize.Message.MF1.ParserTest do
                {:ok, [literal: "It's ", named_arg: "name", literal: "'s"]}
     end
 
+    test "an apostrophe before # outside a plural clause is text, as in ICU" do
+      assert Parser.parse("'#'") == {:ok, [literal: "'#'"]}
+
+      assert Parser.parse("{g, select, other {'#'}}") ==
+               {:ok, [{:select, {:named_arg, "g"}, %{"other" => [literal: "'#'"]}}]}
+    end
+
     test "a quoted # in a plural clause is literal" do
       assert {:ok, [{:plural, _, [], %{other: [literal: "#"]}}]} =
                Parser.parse("{n, plural, other {'#'}}")
+    end
+
+    test "quoting mid-text in a plural clause, as in any other text" do
+      for {message, text} <- [
+            {"{n, plural, other {It''s}}", "It's"},
+            {"{n, plural, other {a '#' b}}", "a # b"},
+            {"{n, plural, other {a '{' b}}", "a { b"},
+            {"{n, selectordinal, other {don't}}", "don't"}
+          ] do
+        assert {:ok, [{_kind, _argument, [], %{other: [literal: ^text]}}]} = Parser.parse(message)
+      end
     end
   end
 

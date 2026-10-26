@@ -21,6 +21,11 @@ defmodule Localize.Message.MF1 do
 
   * `bindings/1` lists the arguments a message uses.
 
+  * `canonical_message/2` and `jaro_distance/3` give a message's canonical
+    form, for use as a Gettext message id, and compare two messages. The
+    `~M` sigil of `Localize.Message.MF1.Sigils` canonicalizes a message at
+    compile time.
+
   ### Arguments and bindings
 
   Bindings are a keyword list or map, keyed by atom or string, for named
@@ -50,6 +55,7 @@ defmodule Localize.Message.MF1 do
 
   alias Localize.Message.MF1.Interpreter
   alias Localize.Message.MF1.Parser
+  alias Localize.Message.MF1.Printer
 
   @own_options [:locale, :trim, :allow_positional_args, :formats]
 
@@ -348,6 +354,185 @@ defmodule Localize.Message.MF1 do
 
   defp collect_binding(_part, acc) do
     acc
+  end
+
+  @doc """
+  Returns a message in canonical form.
+
+  Messages that differ only in layout white space and quoting have the same
+  canonical form, so it can be used as a Gettext message id. The form is
+  that of `Cldr.Message.canonical_message/2`, so existing msgids carry over.
+
+  ### Arguments
+
+  * `message` is a message string. A MessageFormat 2 message (see `mf2?/1`)
+    is given to `Localize.Message.canonical_message/2`.
+
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  * `:trim` is `true` (the default) to trim white space from the message
+    first, or `false`.
+
+  * `:pretty` is `true` to put each selector clause on a line of its own,
+    indented, or `false` (the default).
+
+  ### Returns
+
+  * `{:ok, canonical_message}`, or
+
+  * `{:error, exception}` when the message cannot be parsed or is not a
+    string.
+
+  ### Examples
+
+      iex> Localize.Message.MF1.canonical_message("{greeting } to you!")
+      {:ok, "{greeting} to you!"}
+
+      iex> Localize.Message.MF1.canonical_message("{n, plural, other {# items} one {# item}}")
+      {:ok, "{n, plural, one {# item} other {# items}}"}
+
+  """
+  @spec canonical_message(String.t(), Keyword.t()) :: {:ok, String.t()} | {:error, Exception.t()}
+  def canonical_message(message, options \\ [])
+
+  def canonical_message(message, options) when is_binary(message) do
+    with {:ok, options} <- validate_options(options) do
+      options = Keyword.put_new(options, :trim, true)
+      message = maybe_trim(message, options[:trim])
+      canonical(message, mf2?(message), options)
+    end
+  end
+
+  def canonical_message(message, _options) do
+    {:error, invalid_message(message)}
+  end
+
+  defp canonical(message, true, options) do
+    Localize.Message.canonical_message(message, options)
+  end
+
+  defp canonical(message, false, options) do
+    with {:ok, parsed} <- Parser.parse(message) do
+      {:ok, Printer.to_string(parsed, options)}
+    end
+  end
+
+  @doc """
+  Returns a message in canonical form, raising on error.
+
+  ### Arguments
+
+  * `message` is a message string.
+
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  * See `canonical_message/2`.
+
+  ### Returns
+
+  * The canonical message. An exception is raised when the message cannot
+    be parsed.
+
+  ### Examples
+
+      iex> Localize.Message.MF1.canonical_message!("{greeting } to you!")
+      "{greeting} to you!"
+
+  """
+  @spec canonical_message!(String.t(), Keyword.t()) :: String.t() | no_return()
+  def canonical_message!(message, options \\ []) do
+    case canonical_message(message, options) do
+      {:ok, canonical} -> canonical
+      {:error, exception} -> raise exception
+    end
+  end
+
+  @doc """
+  Returns the [Jaro distance](https://en.wikipedia.org/wiki/Jaro%E2%80%93Winkler_distance)
+  between the canonical forms of two messages.
+
+  It finds a message that changed only a little, such as a translation key
+  edited for readability.
+
+  ### Arguments
+
+  * `message1` and `message2` are MessageFormat 1 message strings.
+
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  * `:trim` is `true` to trim white space from the messages first, or
+    `false` (the default).
+
+  ### Returns
+
+  * `{:ok, distance}` where `distance` is a float from `0.0` (no
+    similarity) to `1.0` (the same canonical message), or
+
+  * `{:error, exception}` when either message cannot be parsed.
+
+  ### Examples
+
+      iex> Localize.Message.MF1.jaro_distance("{greetings} to you!", "{greeting} to you!")
+      {:ok, 0.9824561403508771}
+
+  """
+  @spec jaro_distance(String.t(), String.t(), Keyword.t()) ::
+          {:ok, float()} | {:error, Exception.t()}
+  def jaro_distance(message1, message2, options \\ [])
+
+  def jaro_distance(message1, message2, options)
+      when is_binary(message1) and is_binary(message2) do
+    with {:ok, options} <- validate_options(options),
+         {:ok, parsed1} <- Parser.parse(maybe_trim(message1, options[:trim])),
+         {:ok, parsed2} <- Parser.parse(maybe_trim(message2, options[:trim])) do
+      {:ok, String.jaro_distance(Printer.to_string(parsed1), Printer.to_string(parsed2))}
+    end
+  end
+
+  def jaro_distance(message1, message2, _options) when is_binary(message1) do
+    {:error, invalid_message(message2)}
+  end
+
+  def jaro_distance(message1, _message2, _options) do
+    {:error, invalid_message(message1)}
+  end
+
+  @doc """
+  Returns the Jaro distance between two messages, raising on error.
+
+  ### Arguments
+
+  * `message1` and `message2` are MessageFormat 1 message strings.
+
+  * `options` is a keyword list of options.
+
+  ### Options
+
+  * See `jaro_distance/3`.
+
+  ### Returns
+
+  * A float from `0.0` to `1.0`. An exception is raised when either message
+    cannot be parsed.
+
+  ### Examples
+
+      iex> Localize.Message.MF1.jaro_distance!("{greetings} to you!", "{greeting} to you!")
+      0.9824561403508771
+
+  """
+  @spec jaro_distance!(String.t(), String.t(), Keyword.t()) :: float() | no_return()
+  def jaro_distance!(message1, message2, options \\ []) do
+    case jaro_distance(message1, message2, options) do
+      {:ok, distance} -> distance
+      {:error, exception} -> raise exception
+    end
   end
 
   defp maybe_trim(message, true) do

@@ -199,4 +199,33 @@ defmodule Localize.Message.MF1.CldrMessagesTest do
     assert MF1.format("'{foo}'", []) == {:ok, "{foo}"}
     assert MF1.format("This '{isn''t}' obvious") == {:ok, "This {isn't} obvious"}
   end
+
+  test "canonical message formatting" do
+    message1 =
+      "It's my cat's {year, selectordinal, one {#st} two {#nd} few {#rd} other {#th}} birthday!"
+
+    message2 = "It's my cat's {year, selectordinal,
+        one {#st}
+        two {#nd}
+        few {#rd}
+        other {#th}
+    } birthday!"
+
+    assert MF1.canonical_message(message1) == MF1.canonical_message(message2)
+  end
+
+  test "jaro distance" do
+    message1 =
+      "It's my cat's {year, selectordinal, one {#st} two {#nd} few {#rd} other {#th}} birthday!"
+
+    message2 = "It's my cat's {year, selectordinal,
+        one {#st}
+        two {#nd}
+        few {#rd}
+        other {#th}
+    } birthday!"
+
+    assert MF1.jaro_distance(message1, message2) == {:ok, 1.0}
+    assert MF1.jaro_distance!(message1, message2) == 1.0
+  end
 end

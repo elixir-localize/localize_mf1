@@ -61,6 +61,7 @@ defmodule Localize.Message.MF1.MixProject do
       extras: ["README.md", "CHANGELOG.md"],
       groups_for_modules: [
         Parsing: [Localize.Message.MF1.Parser],
+        Sigils: [Localize.Message.MF1.Sigils],
         Exceptions: [
           Localize.Message.MF1.ParseError,
           Localize.Message.MF1.PositionalArgumentError

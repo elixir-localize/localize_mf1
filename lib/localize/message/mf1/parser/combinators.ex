@@ -10,6 +10,9 @@ defmodule Localize.Message.MF1.Parser.Combinators do
 
   import NimbleParsec
 
+  @syntax_characters [?{, ?}]
+  @plural_syntax_characters [?#, ?{, ?}]
+
   # Characters an argument name may not contain: Pattern_Syntax and
   # Pattern_White_Space (see `arg_name/0`).
   @not_name_characters [
@@ -80,11 +83,15 @@ defmodule Localize.Message.MF1.Parser.Combinators do
   end
 
   # In a plural or selectordinal clause `#` is the number, so it ends text.
+  # Quoting is the same as in other text, checked at every character so that
+  # a doubled or quoting apostrophe mid-text is not taken as plain text.
   def plural_literal do
     choice([
-      escaped_string(),
-      utf8_string([{:not, ?{}, {:not, ?}}, {:not, ?#}], min: 1)
+      escaped_string(@plural_syntax_characters),
+      escaped_single_quote(),
+      utf8_char([{:not, ?{}, {:not, ?}}, {:not, ?#}])
     ])
+    |> times(min: 1)
     |> reduce(:literal)
   end
 
@@ -97,11 +104,14 @@ defmodule Localize.Message.MF1.Parser.Combinators do
     |> replace(:value)
   end
 
-  def escaped_string do
+  # A quote starts quoted text only before a syntax character: `{` or `}`,
+  # and `#` in a plural or selectordinal clause, where it is special. So, as
+  # in ICU, `'#'` outside those clauses is text with its apostrophes.
+  def escaped_string(syntax_characters \\ @syntax_characters) do
     choice([
       escaped_single_quote(),
       ignore(ascii_char([?']))
-      |> concat(syntax_char())
+      |> concat(ascii_char(syntax_characters))
       |> repeat(non_closing_quote())
       |> ignore(ascii_char([?']))
     ])
@@ -111,10 +121,6 @@ defmodule Localize.Message.MF1.Parser.Combinators do
   def escaped_single_quote do
     string("''")
     |> replace("'")
-  end
-
-  def syntax_char do
-    ascii_char([?#, ?{, ?}])
   end
 
   def non_closing_quote do

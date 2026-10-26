@@ -4,4 +4,4 @@ Work planned for `localize_mf1`. The design and its stages are in [plans/mf1-por
 
 ## In progress
 
-* [ ] **Port MessageFormat 1 from `ex_cldr_messages`** — parser, interpreter, printer, Gettext interpolation and documentation, in stages. Project setup, the parser and the interpreter have landed. [plans/mf1-port.md](plans/mf1-port.md).
+* [ ] **Port MessageFormat 1 from `ex_cldr_messages`** — parser, interpreter, printer, Gettext interpolation and documentation, in stages. Project setup, the parser, the interpreter and the printer have landed. [plans/mf1-port.md](plans/mf1-port.md).
