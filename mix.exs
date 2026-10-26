@@ -58,7 +58,13 @@ defmodule Localize.Message.MF1.MixProject do
       main: "readme",
       formatters: ["html", "markdown"],
       extras: ["README.md", "CHANGELOG.md"],
-      groups_for_modules: []
+      groups_for_modules: [
+        Parsing: [Localize.Message.MF1.Parser],
+        Exceptions: [
+          Localize.Message.MF1.ParseError,
+          Localize.Message.MF1.PositionalArgumentError
+        ]
+      ]
     ]
   end
 

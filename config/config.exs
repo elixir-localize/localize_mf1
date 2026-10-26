@@ -9,3 +9,6 @@ import Config
 # many, other) and `ar` (zero, one, two, few, many, other).
 config :localize,
   supported_locales: ~w(en fr de ar ru ja)
+
+# ex_money (an optional dependency) need not fetch exchange rates here.
+config :ex_money, auto_start_exchange_rate_service: false

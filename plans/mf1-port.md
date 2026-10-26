@@ -18,8 +18,6 @@ A port of the MessageFormat 1 half of `ex_cldr_messages` 2.0.1 (`~/Development/c
 
 ## Tasks
 
-* [ ] **Parser** — the MF1 grammar (`v1/parser/combinators.ex`, `v1/parser/parser.ex`) and its tests.
-
 * [ ] **Interpreter** — `format/3`, `format!/3`, `format_to_iolist/3` and `bindings/1` through Localize's formatters, never raising.
 
 * [ ] **Printer and helpers** — `canonical_message/2`, the `~M` sigil and `jaro_distance/3`.
@@ -29,5 +27,7 @@ A port of the MessageFormat 1 half of `ex_cldr_messages` 2.0.1 (`~/Development/c
 * [ ] **Documentation and release** — README, a guide on moving from `ex_cldr_messages`, CHANGELOG and the release review.
 
 ### Done
+
+* [x] **Parser** — the MF1 grammar and `Localize.Message.MF1.Parser.parse/2`, with no atoms made from message text, errors returned rather than raised, duplicate selectors rejected, ICU argument names in any script, and layout white space dropped at every depth. The `plural` `type:` option is not ported (not ICU, and never worked in `ex_cldr_messages`). 2026-10-27.
 
 * [x] **Project setup** — `mix.exs`, CI on the standard matrix, the pre-commit hook, `.credo.exs`, STATUS, TODO and this plan. 2026-10-27.
