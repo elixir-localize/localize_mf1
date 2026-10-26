@@ -20,9 +20,11 @@ A port of the MessageFormat 1 half of `ex_cldr_messages` 2.0.1 (`~/Development/c
 
 ## Tasks
 
-* [ ] **Documentation and release** — README, a guide on moving from `ex_cldr_messages`, CHANGELOG and the release review.
+Every stage has landed; v0.1.0 awaits its first hex publish.
 
 ### Done
+
+* [x] **Documentation and release review** — README, the guide `guides/migrating_from_ex_cldr_messages.md` listing every difference, CHANGELOG, and the release review, with every README and guide example executed. 2026-10-27.
 
 * [x] **Gettext interpolation** — `Localize.Message.MF1.Gettext.Interpolation`, with no backend to configure. The `ex_cldr_messages` Gettext tests pass with their expected results (CLDR no-break spaces aside); a missing binding is written back as its source, and a runtime message that cannot be parsed or formatted is logged and returned unchanged rather than raising. 2026-10-27.
 

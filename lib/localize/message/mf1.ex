@@ -3,8 +3,7 @@ defmodule Localize.Message.MF1 do
   Formats ICU MessageFormat 1 messages with Localize.
 
   ICU MessageFormat 1 (MF1) is the message syntax of ICU4J and ICU4C, of
-  translation management systems such as Crowdin, and of `ex_cldr_messages`
-  1.x: arguments (`{name}`), formatted arguments (`{count, number}`) and the
+  translation management systems such as Crowdin, and of `ex_cldr_messages`: arguments (`{name}`), formatted arguments (`{count, number}`) and the
   `plural`, `select` and `selectordinal` selectors. Localize itself formats
   MessageFormat 2 (`Localize.Message`); this library formats MF1 messages with
   Localize's locales, plural rules and formatters, so that applications can

@@ -1,8 +1,8 @@
 defmodule Localize.Message.MF1.ParseError do
   @moduledoc """
   Returned when a MessageFormat 1 message cannot be parsed: a syntax error,
-  or a `plural`, `select` or `selectordinal` argument with no `other`
-  clause.
+  a `plural`, `select` or `selectordinal` argument with no `other` clause,
+  or one with a selector given twice.
 
   """
 
