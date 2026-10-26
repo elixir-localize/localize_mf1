@@ -23,6 +23,9 @@ defmodule Localize.Message.MF1.InterpreterTest do
     end
 
     test "an unbound argument is an error, and is written as its source in an iolist" do
+      assert MF1.format_to_iolist("{n, number, currency} {d, date}", []) ==
+               {:error, ["{n, number, currency}", " ", "{d, date}"], [], ["n", "d"]}
+
       assert MF1.format("Hello {name} {0}", []) ==
                {:error, Localize.BindError.exception(unbound: ["name", 0])}
 
@@ -32,7 +35,7 @@ defmodule Localize.Message.MF1.InterpreterTest do
 
     test "an unbound selector is reported and its clauses are not formatted" do
       assert MF1.format_to_iolist("{n, plural, other {{x}}}", []) ==
-               {:error, ["{n}"], [], ["n"]}
+               {:error, ["{n, plural, other {{x}}}"], [], ["n"]}
     end
 
     test "a message from a parsed message" do

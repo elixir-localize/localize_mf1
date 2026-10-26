@@ -16,7 +16,9 @@ defmodule Localize.Message.MF1.MixProject do
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
       deps: deps(),
+      elixirc_paths: elixirc_paths(Mix.env()),
       test_coverage: [ignore_modules: coverage_ignore_modules()],
+      test_ignore_filters: [&String.starts_with?(&1, "test/fixtures/")],
       dialyzer: [
         plt_add_apps: ~w(gettext ex_money)a,
         flags: [
@@ -62,12 +64,21 @@ defmodule Localize.Message.MF1.MixProject do
       groups_for_modules: [
         Parsing: [Localize.Message.MF1.Parser],
         Sigils: [Localize.Message.MF1.Sigils],
+        Gettext: [Localize.Message.MF1.Gettext.Interpolation],
         Exceptions: [
           Localize.Message.MF1.ParseError,
           Localize.Message.MF1.PositionalArgumentError
         ]
       ]
     ]
+  end
+
+  defp elixirc_paths(:test) do
+    ["lib", "test/support"]
+  end
+
+  defp elixirc_paths(_env) do
+    ["lib"]
   end
 
   def application do
@@ -104,9 +115,10 @@ defmodule Localize.Message.MF1.MixProject do
 
   # The NimbleParsec combinators run at compile time to build the parser, so
   # coverage of them is measured through `Localize.Message.MF1.Parser`, as
-  # Localize does for its own combinator modules.
+  # Localize does for its own combinator modules. `MyApp` modules are test
+  # fixtures from test/support.
   defp coverage_ignore_modules do
-    [Localize.Message.MF1.Parser.Combinators]
+    [Localize.Message.MF1.Parser.Combinators, ~r/^MyApp\./]
   end
 
   # Ensure CLDR locale data for the locales referenced in tests is present

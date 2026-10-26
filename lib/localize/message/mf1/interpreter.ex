@@ -8,6 +8,7 @@ defmodule Localize.Message.MF1.Interpreter do
   # source text (`{name}`, as ICU does) and reported as unbound.
 
   alias Localize.Message.MF1.Formatter
+  alias Localize.Message.MF1.Printer
 
   @typedoc "The interpreter's running output and the arguments seen so far."
   @type state :: %{output: list(), bound: list(), unbound: list()}
@@ -72,31 +73,33 @@ defmodule Localize.Message.MF1.Interpreter do
 
   defp interpret_part({argument_type, _name} = argument, context, state)
        when argument_type in [:named_arg, :pos_arg] do
-    with_argument(argument, context, state, fn value, state ->
+    with_argument(argument, argument, context, state, fn value, state ->
       format_value(Formatter.format(value, nil, nil, context), state)
     end)
   end
 
-  defp interpret_part({:simple_format, argument, type}, context, state) do
-    interpret_part({:simple_format, argument, type, nil}, context, state)
+  defp interpret_part({:simple_format, argument, type} = part, context, state) do
+    with_argument(part, argument, context, state, fn value, state ->
+      format_value(Formatter.format(value, type, nil, context), state)
+    end)
   end
 
-  defp interpret_part({:simple_format, argument, type, style}, context, state) do
-    with_argument(argument, context, state, fn value, state ->
+  defp interpret_part({:simple_format, argument, type, style} = part, context, state) do
+    with_argument(part, argument, context, state, fn value, state ->
       format_value(Formatter.format(value, type, style, context), state)
     end)
   end
 
-  defp interpret_part({:select, argument, clauses}, context, state) do
-    with_argument(argument, context, state, fn value, state ->
+  defp interpret_part({:select, argument, clauses} = part, context, state) do
+    with_argument(part, argument, context, state, fn value, state ->
       clause = Map.get(clauses, selector(value)) || Map.get(clauses, "other", [])
       interpret(clause, context, state)
     end)
   end
 
-  defp interpret_part({kind, argument, plural_options, clauses}, context, state)
+  defp interpret_part({kind, argument, plural_options, clauses} = part, context, state)
        when kind in [:plural, :select_ordinal] do
-    with_argument(argument, context, state, fn value, state ->
+    with_argument(part, argument, context, state, fn value, state ->
       offset = Keyword.get(plural_options, :offset, 0)
 
       with {:ok, clause, formatted} <- plural_clause(kind, value, offset, clauses, context) do
@@ -114,15 +117,16 @@ defmodule Localize.Message.MF1.Interpreter do
      )}
   end
 
-  # Calls `fun` with the argument's value, or writes the argument's source
-  # text and records it as unbound when no binding has it.
-  defp with_argument({_type, name} = argument, context, state, fun) do
+  # Calls `fun` with the argument's value, or, when no binding has it, writes
+  # the part back as its source text (as `ex_cldr_messages` did, so Gettext
+  # shows `{n, number, currency}` for a missing `n`) and records it unbound.
+  defp with_argument(part, {_type, name} = argument, context, state, fun) do
     case fetch_argument(argument, context.bindings) do
       {:ok, value} ->
         fun.(value, %{state | bound: [name | state.bound]})
 
       :error ->
-        {:ok, %{emit(state, "{#{name}}") | unbound: [name | state.unbound]}}
+        {:ok, %{emit(state, Printer.to_string([part])) | unbound: [name | state.unbound]}}
     end
   end
 
