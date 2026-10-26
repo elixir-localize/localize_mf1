@@ -14,7 +14,8 @@ defmodule Localize.Message.MF1.Parser do
     style}` — a formatted argument such as `{count, number, integer}`. The type
     is one of `:number`, `:date`, `:time`, `:datetime`, `:spellout`,
     `:ordinal`, `:unit`, `:list` or `:money`. The style is a keyword atom,
-    `{:named_format, name}` for a `:name` style, or pattern text.
+    `{:named_format, name}` for a `:name` style, `{:skeleton, text}` for a
+    `::skeleton` style, or pattern text.
 
   * `{:plural, argument, options, clauses}` and `{:select_ordinal, argument,
     options, clauses}` — the options are `[offset: n]` when an offset is given,

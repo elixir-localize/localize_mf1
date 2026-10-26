@@ -16,9 +16,9 @@ A port of the MessageFormat 1 half of `ex_cldr_messages` 2.0.1 (`~/Development/c
 
 * **The parser is ported, the interpreter rewritten.** The NimbleParsec grammar carries over; formatting goes through `Localize.Number`, `Localize.Number.PluralRule`, `Localize.Date`, `Localize.Time`, `Localize.DateTime`, `Localize.Unit` and `Money`.
 
-## Tasks
+* **Compatibility with `ex_cldr_messages` comes first** (user, 2026-10-27). Its MF1 tests are ported with their expected results and pass; other options are forwarded to every formatter, an unconfigured `:name` style is an RBNF rule or number format, and an MF2 message is formatted by `Localize.Message`. Errors are Localize exceptions rather than `{module, message}` tuples.
 
-* [ ] **Interpreter** — `format/3`, `format!/3`, `format_to_iolist/3` and `bindings/1` through Localize's formatters, never raising.
+## Tasks
 
 * [ ] **Printer and helpers** — `canonical_message/2`, the `~M` sigil and `jaro_distance/3`.
 
@@ -27,6 +27,8 @@ A port of the MessageFormat 1 half of `ex_cldr_messages` 2.0.1 (`~/Development/c
 * [ ] **Documentation and release** — README, a guide on moving from `ex_cldr_messages`, CHANGELOG and the release review.
 
 ### Done
+
+* [x] **Interpreter** — `format/3`, `format!/3`, `format_to_iolist/3`, `format_list/3` and `bindings/1` through Localize. The `ex_cldr_messages` MF1 tests pass unchanged apart from error shapes and a CLDR no-break space; skeletons (`::…`) are tagged by the parser and return an error. 2026-10-27.
 
 * [x] **Parser** — the MF1 grammar and `Localize.Message.MF1.Parser.parse/2`, with no atoms made from message text, errors returned rather than raised, duplicate selectors rejected, ICU argument names in any script, and layout white space dropped at every depth. The `plural` `type:` option is not ported (not ICU, and never worked in `ex_cldr_messages`). 2026-10-27.
 

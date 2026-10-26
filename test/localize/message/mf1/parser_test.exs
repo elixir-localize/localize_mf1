@@ -85,7 +85,10 @@ defmodule Localize.Message.MF1.ParserTest do
                {:ok, [{:simple_format, {:named_arg, "n"}, :number, "#,##0.0"}]}
 
       assert Parser.parse("{n, number, ::currency/USD}") ==
-               {:ok, [{:simple_format, {:named_arg, "n"}, :number, "currency/USD"}]}
+               {:ok, [{:simple_format, {:named_arg, "n"}, :number, {:skeleton, "currency/USD"}}]}
+
+      assert Parser.parse("{d, date, ::yMMMd}") ==
+               {:ok, [{:simple_format, {:named_arg, "d"}, :date, {:skeleton, "yMMMd"}}]}
     end
   end
 

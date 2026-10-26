@@ -407,6 +407,7 @@ defmodule Localize.Message.MF1.Parser.Combinators do
       style_keyword("unit_narrow", :unit_narrow),
       style_keyword("unit_short", :unit_short),
       style_keyword("unit", :unit),
+      skeleton_text(),
       named_style(),
       style_text()
     ])
@@ -428,10 +429,17 @@ defmodule Localize.Message.MF1.Parser.Combinators do
     |> unwrap_and_tag(:named_format)
   end
 
-  # Any other style is pattern or skeleton text, to the closing brace.
+  # `::` starts skeleton text, which is tagged so that it is not read as a
+  # pattern: the skeleton `::yMMMd` and the pattern `yMMMd` differ.
+  def skeleton_text do
+    ignore(string("::"))
+    |> concat(style_text())
+    |> unwrap_and_tag(:skeleton)
+  end
+
+  # Any other style is pattern text, to the closing brace.
   def style_text do
-    ignore(optional(string("::")))
-    |> repeat(choice([escaped_string(), utf8_char([{:not, ?}}, {:not, ?\n}])]))
+    repeat(choice([escaped_string(), utf8_char([{:not, ?}}, {:not, ?\n}])]))
     |> reduce({List, :to_string, []})
   end
 end
