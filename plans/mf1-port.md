@@ -1,6 +1,6 @@
 # MessageFormat 1 for Localize
 
-**Status:** in progress, 2026-10-27
+**Status:** implemented (v0.1.0), 2026-10-27
 
 A port of the MessageFormat 1 half of `ex_cldr_messages` 2.0.1 (`~/Development/cldr/cldr_messages`, `lib/cldr/messages/v1`, the `Cldr.Message` API and `Cldr.Gettext.Interpolation`) onto Localize, asked for in [localize#60](https://github.com/elixir-localize/localize/issues/60) by a team moving from ex_cldr whose translations are MF1 in Crowdin.
 
@@ -20,7 +20,7 @@ A port of the MessageFormat 1 half of `ex_cldr_messages` 2.0.1 (`~/Development/c
 
 ## Tasks
 
-Every stage has landed; v0.1.0 awaits its first hex publish.
+Every stage has landed and v0.1.0 is published.
 
 ### Done
 

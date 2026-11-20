@@ -40,7 +40,7 @@ defmodule Localize.Message.MF1 do
   | `{n, number}`, `{n, number, integer}` (and `currency`, `percent`, `permille`, `short`, `long`) | `Localize.Number.to_string/2` |
   | `{n, number, ordinal}` | the `digits_ordinal` rule ("1st") |
   | `{n, spellout}` (and `verbose`, `year`, `ordinal`) | `Localize.Number.Rbnf.to_string/3` |
-  | `{d, date}`, `{t, time}`, `{dt, datetime}` (and `short` to `full`, or a pattern) | `Localize.Date`, `Localize.Time` and `Localize.DateTime` |
+  | `{d, date}`, `{t, time}`, `{dt, datetime}` (and `short` to `full`, a pattern, or a `::` skeleton) | `Localize.Date`, `Localize.Time` and `Localize.DateTime` |
   | `{u, unit}` (and `short`, `long`, `narrow`) | `Localize.Unit.to_string/2` |
   | `{l, list}` (and `or`, `unit` and the other list styles) | `Localize.List.to_string/2` |
   | `{m, money}` (and `short`, `long`) | `Money.to_string/2`, when `ex_money` is a dependency |
@@ -48,7 +48,11 @@ defmodule Localize.Message.MF1 do
   A `:name` style, as in `{n, number, :spellout_ordinal}`, is a format
   configured with the `:formats` option or the `:formats` key of the
   `:localize_mf1` application environment, or else an RBNF rule or a number
-  format of that name. Number and date skeletons (`::…`) are not supported.
+  format of that name.
+
+  A date, time or datetime skeleton, as in `{d, date, ::yMMMd}`, is matched
+  to the locale's formats: "Oct 27, 2026" in `en`, "27. Okt. 2026" in `de`.
+  Number skeletons (`{n, number, ::percent}`) are not supported.
 
   """
 

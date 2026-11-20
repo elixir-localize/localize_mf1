@@ -93,7 +93,7 @@ defmodule Localize.Message.MF1.MixProject do
 
   defp deps do
     [
-      {:localize, "~> 1.4"},
+      {:localize, "~> 1.9"},
       {:nimble_parsec, "~> 1.0"},
       {:gettext, "~> 1.0", optional: true},
       {:ex_money, "~> 6.0", optional: true},

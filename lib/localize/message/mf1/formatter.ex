@@ -196,9 +196,10 @@ defmodule Localize.Message.MF1.Formatter do
     {:ok, Keyword.put(base_options(context), :format, style)}
   end
 
-  defp date_options({:skeleton, skeleton}, _context) do
-    {:error,
-     format_error(skeleton, :date, "date and time skeletons (::#{skeleton}) are not supported")}
+  # A `::` skeleton is given to Localize as text, which matches it to the
+  # locale's formats as it does a skeleton atom and makes no atom of it.
+  defp date_options({:skeleton, _skeleton} = style, context) do
+    {:ok, Keyword.put(base_options(context), :format, style)}
   end
 
   defp date_options(style, context) do

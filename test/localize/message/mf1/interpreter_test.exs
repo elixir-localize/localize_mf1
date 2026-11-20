@@ -160,10 +160,54 @@ defmodule Localize.Message.MF1.InterpreterTest do
                {:ok, "10/27/26, 1:04 PM"}
     end
 
-    test "a skeleton or a value that is not a date is an error" do
-      assert {:error, %Localize.FormatError{}} =
-               MF1.format("{d, date, ::yMMMd}", d: ~D[2026-10-27])
+    # Expected text is CLDR's own pattern for the skeleton in each locale:
+    # `yMMMd` is "MMM d, y" in en, "d. MMM y" in de, "d MMM y" in fr and
+    # "y年M月d日" in ja; `Hm` is "HH:mm" in en.
+    test "a date skeleton is matched to the locale's formats" do
+      date = ~D[2026-10-27]
 
+      assert MF1.format("{d, date, ::yMMMd}", d: date) == {:ok, "Oct 27, 2026"}
+      assert MF1.format("{d, date, ::yMMMd}", [d: date], locale: :de) == {:ok, "27. Okt. 2026"}
+      assert MF1.format("{d, date, ::yMMMd}", [d: date], locale: :fr) == {:ok, "27 oct. 2026"}
+      assert MF1.format("{d, date, ::yMMMd}", [d: date], locale: :ja) == {:ok, "2026年10月27日"}
+      assert MF1.format("{d, date, ::MMMMd}", d: date) == {:ok, "October 27"}
+      assert MF1.format("{d, date, ::yMMMEd}", d: date) == {:ok, "Tue, Oct 27, 2026"}
+      assert MF1.format("On {d, date, ::yMMM}.", d: date) == {:ok, "On Oct 2026."}
+    end
+
+    test "time and datetime skeletons" do
+      assert MF1.format("{t, time, ::Hm}", t: ~T[13:04:00]) == {:ok, "13:04"}
+      assert MF1.format("{t, time, ::Hms}", t: ~T[13:04:05]) == {:ok, "13:04:05"}
+
+      assert MF1.format("{dt, datetime, ::yMMMdHm}", dt: ~U[2026-10-27 13:04:00Z]) ==
+               {:ok, "Oct 27, 2026, 13:04"}
+    end
+
+    test "a skeleton formats as Localize formats the same skeleton" do
+      date = ~D[2026-10-27]
+
+      for locale <- [:en, :de, :fr, :ja], skeleton <- ~w(yMd yMMMd yMMMMd yMMMEd MMMd yQQQ) do
+        expected = Localize.Date.to_string(date, format: {:skeleton, skeleton}, locale: locale)
+        assert {:ok, _text} = expected
+        assert MF1.format("{d, date, ::#{skeleton}}", [d: date], locale: locale) == expected
+      end
+    end
+
+    test "a skeleton makes no atom" do
+      skeleton = "yyyyMMMMdd"
+      assert_raise ArgumentError, fn -> String.to_existing_atom(skeleton) end
+
+      assert {:ok, _text} = MF1.format("{d, date, ::#{skeleton}}", d: ~D[2026-10-27])
+      assert_raise ArgumentError, fn -> String.to_existing_atom(skeleton) end
+    end
+
+    test "a skeleton that is not date and time symbols, or does not fit the value, is an error" do
+      assert {:error, _exception} = MF1.format("{d, date, ::currency/USD}", d: ~D[2026-10-27])
+      assert {:error, _exception} = MF1.format("{d, date, ::Hm}", d: ~D[2026-10-27])
+      assert {:error, _exception} = MF1.format("{t, time, ::yMMMd}", t: ~T[13:04:00])
+    end
+
+    test "a value that is not a date is an error" do
       assert {:error, _exception} = MF1.format("{d, date}", d: "today")
     end
   end
@@ -198,7 +242,7 @@ defmodule Localize.Message.MF1.InterpreterTest do
 
   describe "MessageFormat 2" do
     test "an MF2 message is formatted by Localize.Message" do
-      assert MF1.format("{{Hello {$name}}}", name: "World") == {:ok, "Hello World"}
+      assert MF1.format("{{Hello {$name}}}", name: "World") == {:ok, "Hello \u2068World\u2069"}
     end
   end
 

@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.2.0] — Unreleased
+
+### Added
+
+* Date, time and datetime skeletons: `{d, date, ::yMMMd}`, `{t, time, ::Hm}` and `{dt, datetime, ::yMMMdHm}` are matched to the locale's formats by Localize, with no atom made of the skeleton. Number skeletons remain unsupported.
+
+### Changed
+
+* Requires `localize ~> 1.9`, which takes a skeleton as text.
+
+* An MF2 message given to `Localize.Message.MF1.format/3` is formatted with Localize 1.8's default bidi isolation, so a placeholder's text is wrapped in U+2068 and U+2069; MF1 messages are unchanged.
+
 ## [v0.1.0] — 2026-10-27
 
 ### Highlights

@@ -93,7 +93,7 @@ These behave as they did in `ex_cldr_messages`, so formatted messages stay the s
 
 * **Argument types that raised now format** — `{n, ordinal}` ("1st") and `{m, money}` with no style.
 
-* **Skeletons are not supported** — `{n, number, ::currency/USD}` and `{d, date, ::yMMMd}` return a `Localize.FormatError`. They did not parse in `ex_cldr_messages`.
+* **Date and time skeletons format; number skeletons are not supported** — `{d, date, ::yMMMd}` is matched to the locale's formats ("Oct 27, 2026"), and `{n, number, ::currency/USD}` returns a `Localize.FormatError`. Neither parsed in `ex_cldr_messages`.
 
 * **Formatted text follows Localize's CLDR data**, which is newer than that of `ex_cldr` 2.x: a time is "9:43:56 AM" with a narrow no-break space before "AM", and "MXP 1.00" has a no-break space.
 
