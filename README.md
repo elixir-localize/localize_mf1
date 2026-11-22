@@ -31,7 +31,7 @@ Add `localize_mf1` to your dependencies in `mix.exs`, and `ex_money` if your mes
 ```elixir
 def deps do
   [
-    {:localize_mf1, "~> 0.1"},
+    {:localize_mf1, "~> 0.2"},
     {:ex_money, "~> 6.0"}
   ]
 end
@@ -59,6 +59,16 @@ iex> Localize.Message.MF1.format("{count, number} jelly beans", [count: 1234], l
 
 iex> Localize.Message.MF1.format("Due {due, date, long}", due: ~D[2026-10-27])
 {:ok, "Due October 27, 2026"}
+```
+
+A date or time style may be a pattern, or a skeleton after `::`, which the locale arranges in its own way:
+
+```elixir
+iex> Localize.Message.MF1.format("Due {due, date, ::yMMMEd}", due: ~D[2026-10-27])
+{:ok, "Due Tue, Oct 27, 2026"}
+
+iex> Localize.Message.MF1.format("Due {due, date, ::yMMMd}", [due: ~D[2026-10-27]], locale: :de)
+{:ok, "Due 27. Okt. 2026"}
 ```
 
 `plural` and `selectordinal` choose a clause by the locale's plural rules, and `select` by a value:
@@ -107,4 +117,4 @@ The full documentation is published on [HexDocs](https://hexdocs.pm/localize_mf1
 
 ## License
 
-Localize MF1 is released under the [Apache License 2.0](https://github.com/elixir-localize/localize_mf1/blob/v0.1.0/LICENSE.md).
+Localize MF1 is released under the [Apache License 2.0](https://github.com/elixir-localize/localize_mf1/blob/v0.2.0/LICENSE.md).

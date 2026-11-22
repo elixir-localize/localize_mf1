@@ -9,7 +9,7 @@ Replace `ex_cldr_messages` and the `ex_cldr` packages it used with `localize_mf1
 ```elixir
 def deps do
   [
-    {:localize_mf1, "~> 0.1"},
+    {:localize_mf1, "~> 0.2"},
     {:ex_money, "~> 6.0"}
   ]
 end
